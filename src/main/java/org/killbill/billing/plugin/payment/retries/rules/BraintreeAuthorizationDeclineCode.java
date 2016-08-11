@@ -129,6 +129,11 @@ public enum BraintreeAuthorizationDeclineCode implements AuthorizationDeclineCod
     }
 
     @Override
+    public String getProcessor() {
+        return "Braintree";
+    }
+
+    @Override
     public int getCode() {
         return code;
     }

@@ -18,25 +18,58 @@
 package org.killbill.billing.plugin.payment.retries;
 
 import java.io.IOException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.osgi.service.log.LogService;
+import org.killbill.billing.plugin.payment.retries.config.PaymentRetriesApi;
+import org.killbill.billing.plugin.payment.retries.rules.AuthorizationDeclineCode;
+import org.killbill.billing.tenant.api.Tenant;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableMap;
 
 public class PaymentRetriesServlet extends HttpServlet {
 
-    private final LogService logService;
+    private static final ObjectMapper jsonMapper = new ObjectMapper();
 
-    public PaymentRetriesServlet(final LogService logService) {
-        this.logService = logService;
+    private static final String KILLBILL_TENANT = "killbill_tenant";
+
+    private static final Pattern PAYMENT_METHOD_CHECK_PATTERN = Pattern.compile("/paymentMethodCheck");
+    private static final String PAYMENT_EXTERNAL_KEY = "paymentExternalKey";
+    private static final String RETRYABLE = "retryable";
+
+    private static final String APPLICATION_JSON = "application/json";
+
+    private final PaymentRetriesApi paymentRetriesApi;
+
+    public PaymentRetriesServlet(final PaymentRetriesApi paymentRetriesApi) {
+        this.paymentRetriesApi = paymentRetriesApi;
     }
 
     @Override
     protected void doGet(final HttpServletRequest req, final HttpServletResponse resp) throws ServletException, IOException {
-        // Find me on http://127.0.0.1:8080/plugins/payment-retries-plugin
-        logService.log(LogService.LOG_INFO, "Hello world");
+        final String pathInfo = req.getPathInfo();
+        final Matcher matcher;
+
+        matcher = PAYMENT_METHOD_CHECK_PATTERN.matcher(pathInfo);
+        if (matcher.matches()) {
+            final String paymentExternalKey = req.getParameter(PAYMENT_EXTERNAL_KEY);
+
+            // Set by the TenantFilter
+            final Tenant tenant = (Tenant) req.getAttribute(KILLBILL_TENANT);
+
+            final AuthorizationDeclineCode authorizationDeclineCode = paymentRetriesApi.getAuthorizationDeclineCode(paymentExternalKey, tenant.getId());
+            final boolean isValidPaymentMethod = authorizationDeclineCode == null || authorizationDeclineCode.isRetryable();
+
+            resp.getOutputStream().write(jsonMapper.writeValueAsBytes(ImmutableMap.<String, Boolean>of(RETRYABLE, isValidPaymentMethod)));
+            resp.setContentType(APPLICATION_JSON);
+        } else {
+            resp.sendError(404);
+        }
     }
 }

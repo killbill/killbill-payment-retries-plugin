@@ -15,15 +15,17 @@
  * under the License.
  */
 
-package org.killbill.billing.plugin.payment.retries.rules;
+package org.killbill.billing.plugin.payment.retries.config;
 
-public interface AuthorizationDeclineCode {
+public class PaymentRetriesConfiguration {
 
-    public String getProcessor();
+    private final Integer experimentTrafficPct;
 
-    public int getCode();
+    public PaymentRetriesConfiguration(final Integer experimentTrafficPct) {
+        this.experimentTrafficPct = experimentTrafficPct;
+    }
 
-    public String getMessage();
-
-    public boolean isRetryable();
+    public Integer getExperimentTrafficPct() {
+        return experimentTrafficPct;
+    }
 }

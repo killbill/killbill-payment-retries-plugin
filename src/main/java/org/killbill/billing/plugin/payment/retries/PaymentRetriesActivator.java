@@ -26,21 +26,46 @@ import javax.servlet.http.HttpServlet;
 import org.killbill.billing.control.plugin.api.PaymentControlPluginApi;
 import org.killbill.billing.osgi.api.OSGIPluginProperties;
 import org.killbill.billing.osgi.libs.killbill.KillbillActivatorBase;
+import org.killbill.billing.plugin.api.notification.PluginConfigurationEventHandler;
+import org.killbill.billing.plugin.payment.retries.config.PaymentRetriesApi;
+import org.killbill.billing.plugin.payment.retries.config.PaymentRetriesConfiguration;
+import org.killbill.billing.plugin.payment.retries.config.PaymentRetriesConfigurationHandler;
 import org.osgi.framework.BundleContext;
 
 public class PaymentRetriesActivator extends KillbillActivatorBase {
 
     public static final String PLUGIN_NAME = "payment-retries-plugin";
 
+    private PaymentRetriesConfigurationHandler paymentRetriesConfigurationHandler;
+
     @Override
     public void start(final BundleContext context) throws Exception {
         super.start(context);
 
-        final PaymentControlPluginApi paymentControlPluginApi = new PaymentRetriesPaymentControlPluginApi(configProperties.getProperties(), logService);
+        paymentRetriesConfigurationHandler = new PaymentRetriesConfigurationHandler(PLUGIN_NAME, killbillAPI, logService);
+
+        final PaymentRetriesConfiguration globalConfigurable = paymentRetriesConfigurationHandler.createConfigurable(configProperties.getProperties());
+        paymentRetriesConfigurationHandler.setDefaultConfigurable(globalConfigurable);
+
+        final PaymentRetriesApi paymentRetriesApi = new PaymentRetriesApi(killbillAPI);
+
+        final PaymentControlPluginApi paymentControlPluginApi = new PaymentRetriesPaymentControlPluginApi(paymentRetriesConfigurationHandler,
+                                                                                                          paymentRetriesApi,
+                                                                                                          killbillAPI,
+                                                                                                          configProperties,
+                                                                                                          logService,
+                                                                                                          clock.getClock());
         registerPaymentControlPluginApi(context, paymentControlPluginApi);
 
-        final PaymentRetriesServlet analyticsServlet = new PaymentRetriesServlet(logService);
+        final PaymentRetriesServlet analyticsServlet = new PaymentRetriesServlet(paymentRetriesApi);
         registerServlet(context, analyticsServlet);
+
+        registerEventHandler();
+    }
+
+    private void registerEventHandler() {
+        final PluginConfigurationEventHandler eventHandler = new PluginConfigurationEventHandler(paymentRetriesConfigurationHandler);
+        dispatcher.registerEventHandlers(eventHandler);
     }
 
     private void registerServlet(final BundleContext context, final HttpServlet servlet) {
