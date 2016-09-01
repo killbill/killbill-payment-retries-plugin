@@ -17,10 +17,13 @@
 
 package org.killbill.billing.plugin.payment.retries.rules;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
+@JsonFormat(shape = JsonFormat.Shape.OBJECT)
 public enum ChasePaymentechAuthorizationDeclineCode implements AuthorizationDeclineCode {
 
     PREVIOUSLY_PROCESSED_TRANSACTION(109, "Previously Processed Transaction", true),
-    INVALID_CC_NUMBER(201, "Invalid CC Number", false),
+    INVALID_CC_NUMBER(201, "Invalid CC Number", ErrorMessage.CARD_NUMBER_MISMATCH, false),
     BAD_AMOUNT(202, "Bad Amount", true),
     ZERO_AMOUNT(203, "Zero Amount", true),
     OTHER_ERROR(204, "Other Error", true),
@@ -42,7 +45,7 @@ public enum ChasePaymentechAuthorizationDeclineCode implements AuthorizationDecl
     INVALID_MOP_FOR_DIVISION(239, "Invalid MOP for Division", false),
     AUTH_AMOUNT_WRONG(240, "Auth Amount Wrong", true),
     ILLEGAL_ACTION(241, "Illegal Action", true),
-    INVALID_PURCH__LEVEL_3(243, "Invalid Purch. Level 3", true),
+    INVALID_PURCH_LEVEL_3(243, "Invalid Purch. Level 3", true),
     INVALID_SECURE_PAYMENT_DATA(245, "Invalid Secure Payment Data", true),
     MERCHANT_NOT_MC_SECURECODE_ENABLED(246, "Merchant not MC SecureCode Enabled", false),
     BLANKS_NOT_PASSED_IN_RESERVED_FIELD(248, "Blanks not Passed in Reserved Field", true),
@@ -52,9 +55,9 @@ public enum ChasePaymentechAuthorizationDeclineCode implements AuthorizationDecl
     INVALID_TRANSACTION_TYPE(253, "Invalid Transaction Type", true),
     CUSTOMER_SERVICE_PHONE_NUMBER_REQUIRED(257, "Customer Service Phone Number required on Transaction Types 1 (MO/TO) and 2 (Recurring). MC Only", true),
     NOT_AUTHORIZED_TO_SEND_RECORD(258, "Not Authorized to send record", true),
-    SOFT_AVS(260, "Soft AVS", true),
+    SOFT_AVS(260, "Soft AVS", ErrorMessage.ADDRESS_MISMATCH, true),
     ISSUER_UNAVAILABLE(301, "Issuer Unavailable", true),
-    CREDIT_FLOOR(302, "Credit Floor", true),
+    CREDIT_FLOOR(302, "Credit Floor", ErrorMessage.INSUFFICIENT_FUNDS, true),
     PROCESSOR_DECLINE(303, "Processor Decline", false),
     NOT_ON_FILE(304, "Not on File", true),
     FLOOR_LOW_FRAUD(332, "Floor Low Fraud", false),
@@ -203,11 +206,17 @@ public enum ChasePaymentechAuthorizationDeclineCode implements AuthorizationDecl
 
     private final int code;
     private final String message;
+    private final ErrorMessage errorMessage;
     private final boolean retryable;
 
     ChasePaymentechAuthorizationDeclineCode(final int code, final String message, final boolean retryable) {
+        this(code, message, ErrorMessage.GENERAL_DECLINE, retryable);
+    }
+
+    ChasePaymentechAuthorizationDeclineCode(final int code, final String message, final ErrorMessage errorMessage, final boolean retryable) {
         this.code = code;
         this.message = message;
+        this.errorMessage = errorMessage;
         this.retryable = retryable;
     }
 
@@ -224,6 +233,11 @@ public enum ChasePaymentechAuthorizationDeclineCode implements AuthorizationDecl
     @Override
     public String getMessage() {
         return message;
+    }
+
+    @Override
+    public ErrorMessage getErrorMessage() {
+        return errorMessage;
     }
 
     @Override

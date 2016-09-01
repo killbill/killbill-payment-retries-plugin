@@ -18,7 +18,8 @@
 package org.killbill.billing.plugin.payment.retries;
 
 import java.io.IOException;
-import java.util.regex.Matcher;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.regex.Pattern;
 
 import javax.servlet.ServletException;
@@ -31,7 +32,8 @@ import org.killbill.billing.plugin.payment.retries.rules.AuthorizationDeclineCod
 import org.killbill.billing.tenant.api.Tenant;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableMap;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Maps;
 
 public class PaymentRetriesServlet extends HttpServlet {
 
@@ -40,7 +42,10 @@ public class PaymentRetriesServlet extends HttpServlet {
     private static final String KILLBILL_TENANT = "killbill_tenant";
 
     private static final Pattern PAYMENT_METHOD_CHECK_PATTERN = Pattern.compile("/paymentMethodCheck");
+    private static final Pattern CONFIGURATION_PATTERN = Pattern.compile("/configuration");
+
     private static final String PAYMENT_EXTERNAL_KEY = "paymentExternalKey";
+    private static final String ERROR_MESSAGE = "errorMessage";
     private static final String RETRYABLE = "retryable";
 
     private static final String APPLICATION_JSON = "application/json";
@@ -54,19 +59,48 @@ public class PaymentRetriesServlet extends HttpServlet {
     @Override
     protected void doGet(final HttpServletRequest req, final HttpServletResponse resp) throws ServletException, IOException {
         final String pathInfo = req.getPathInfo();
-        final Matcher matcher;
 
-        matcher = PAYMENT_METHOD_CHECK_PATTERN.matcher(pathInfo);
-        if (matcher.matches()) {
+        if (PAYMENT_METHOD_CHECK_PATTERN.matcher(pathInfo).matches()) {
             final String paymentExternalKey = req.getParameter(PAYMENT_EXTERNAL_KEY);
 
             // Set by the TenantFilter
             final Tenant tenant = (Tenant) req.getAttribute(KILLBILL_TENANT);
+            if (tenant == null) {
+                resp.sendError(404);
+                return;
+            }
 
             final AuthorizationDeclineCode authorizationDeclineCode = paymentRetriesApi.getAuthorizationDeclineCode(paymentExternalKey, tenant.getId());
-            final boolean isValidPaymentMethod = authorizationDeclineCode == null || authorizationDeclineCode.isRetryable();
+            if (authorizationDeclineCode == null) {
+                resp.sendError(404);
+            } else {
+                resp.getOutputStream().write(jsonMapper.writeValueAsBytes(authorizationDeclineCode));
+                resp.setContentType(APPLICATION_JSON);
+            }
+        } else if (CONFIGURATION_PATTERN.matcher(pathInfo).matches()) {
+            final boolean retryableOnly = Boolean.valueOf(req.getParameter(RETRYABLE));
+            final String errorMessage = req.getParameter(ERROR_MESSAGE);
 
-            resp.getOutputStream().write(jsonMapper.writeValueAsBytes(ImmutableMap.<String, Boolean>of(RETRYABLE, isValidPaymentMethod)));
+            final Map<String, Map<Integer, AuthorizationDeclineCode>> perPluginDeclineCodes = paymentRetriesApi.getPerPluginDeclineCodes();
+            final Map<String, Map<Integer, AuthorizationDeclineCode>> returnedMap = new TreeMap<String, Map<Integer, AuthorizationDeclineCode>>();
+            for (final String pluginName : perPluginDeclineCodes.keySet()) {
+                returnedMap.put(pluginName,
+                                Maps.<Integer, AuthorizationDeclineCode>filterValues(perPluginDeclineCodes.get(pluginName),
+                                                                                     new Predicate<AuthorizationDeclineCode>() {
+                                                                                         @Override
+                                                                                         public boolean apply(final AuthorizationDeclineCode authorizationDeclineCode) {
+                                                                                             if (retryableOnly && errorMessage == null) {
+                                                                                                 return authorizationDeclineCode.isRetryable();
+                                                                                             } else if (retryableOnly) {
+                                                                                                 return authorizationDeclineCode.isRetryable() && authorizationDeclineCode.getErrorMessage().name().equalsIgnoreCase(errorMessage);
+                                                                                             } else {
+                                                                                                 return errorMessage == null || authorizationDeclineCode.getErrorMessage().name().equalsIgnoreCase(errorMessage);
+                                                                                             }
+                                                                                         }
+                                                                                     }));
+            }
+
+            resp.getOutputStream().write(jsonMapper.writeValueAsBytes(returnedMap));
             resp.setContentType(APPLICATION_JSON);
         } else {
             resp.sendError(404);

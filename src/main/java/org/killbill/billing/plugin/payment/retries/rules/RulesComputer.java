@@ -17,8 +17,8 @@
 
 package org.killbill.billing.plugin.payment.retries.rules;
 
-import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 import org.killbill.billing.payment.api.PaymentMethod;
 import org.killbill.billing.payment.plugin.api.PaymentTransactionInfoPlugin;
@@ -30,7 +30,7 @@ public class RulesComputer {
 
     private static final Logger logger = LoggerFactory.getLogger(RulesComputer.class);
 
-    private final Map<String, Map<Integer, AuthorizationDeclineCode>> perPluginDeclineCodes = new LinkedHashMap<String, Map<Integer, AuthorizationDeclineCode>>();
+    private final Map<String, Map<Integer, AuthorizationDeclineCode>> perPluginDeclineCodes = new TreeMap<String, Map<Integer, AuthorizationDeclineCode>>();
 
     public RulesComputer() {
         populateReverseLookup("killbill-braintree_blue", BraintreeAuthorizationDeclineCode.values());
@@ -61,8 +61,12 @@ public class RulesComputer {
         return declineCodes.get(processorResponseCode);
     }
 
+    public Map<String, Map<Integer, AuthorizationDeclineCode>> getPerPluginDeclineCodes() {
+        return perPluginDeclineCodes;
+    }
+
     private void populateReverseLookup(final String pluginName, final AuthorizationDeclineCode[] authorizationDeclineCodes) {
-        final Map<Integer, AuthorizationDeclineCode> pluginDeclineCodes = new LinkedHashMap<Integer, AuthorizationDeclineCode>();
+        final Map<Integer, AuthorizationDeclineCode> pluginDeclineCodes = new TreeMap<Integer, AuthorizationDeclineCode>();
         for (final AuthorizationDeclineCode authorizationDeclineCode : authorizationDeclineCodes) {
             pluginDeclineCodes.put(authorizationDeclineCode.getCode(), authorizationDeclineCode);
         }

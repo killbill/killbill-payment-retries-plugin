@@ -17,23 +17,26 @@
 
 package org.killbill.billing.plugin.payment.retries.rules;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
+@JsonFormat(shape = JsonFormat.Shape.OBJECT)
 public enum BraintreeAuthorizationDeclineCode implements AuthorizationDeclineCode {
 
     DO_NOT_HONOR(2000, "Do Not Honor", true),
-    INSUFFICIENT_FUNDS(2001, "Insufficient Funds", true),
+    INSUFFICIENT_FUNDS(2001, "Insufficient Funds", ErrorMessage.INSUFFICIENT_FUNDS, true),
     LIMIT_EXCEEDED(2002, "Limit Exceeded", true),
     CARDHOLDER_ACTIVITY_LIMIT_EXCEEDED(2003, "Cardholder's Activity Limit Exceeded", true),
-    EXPIRED_CARD(2004, "Expired Card", false),
-    INVALID_CREDIT_CARD_NUMBER(2005, "Invalid Credit Card Number", false),
-    INVALID_EXPIRATION_DATE(2006, "Invalid Expiration Date", false),
+    EXPIRED_CARD(2004, "Expired Card", ErrorMessage.EXPIRED_CARD, false),
+    INVALID_CREDIT_CARD_NUMBER(2005, "Invalid Credit Card Number", ErrorMessage.CARD_NUMBER_MISMATCH, false),
+    INVALID_EXPIRATION_DATE(2006, "Invalid Expiration Date", ErrorMessage.EXPIRATION_DATE_MISMATCH, false),
     NO_ACCOUNT(2007, "No Account", false),
     CARD_ACCOUNT_LENGTH_ERROR(2008, "Card Account Length Error", false),
     NO_SUCH_ISSUER(2009, "No Such Issuer", true),
-    CARD_ISSUER_DECLINED_CVV(2010, "Card Issuer Declined CVV", false),
+    CARD_ISSUER_DECLINED_CVV(2010, "Card Issuer Declined CVV", ErrorMessage.CVV_MISMATCH, false),
     VOICE_AUTHORIZATION_REQUIRED(2011, "Voice Authorization Required", false),
-    PROCESSOR_DECLINED_POSSIBLE_LOST_CARD(2012, "Processor Declined Possible Lost Card", false),
-    PROCESSOR_DECLINED_POSSIBLE_STOLEN_CARD(2013, "Processor Declined - Possible Stolen Card", false),
-    PROCESSOR_DECLINED_FRAUD_SUSPECTED(2014, "Processor Declined - Fraud Suspected", false),
+    PROCESSOR_DECLINED_POSSIBLE_LOST_CARD(2012, "Processor Declined Possible Lost Card", ErrorMessage.LOST_OR_STOLEN, false),
+    PROCESSOR_DECLINED_POSSIBLE_STOLEN_CARD(2013, "Processor Declined - Possible Stolen Card", ErrorMessage.LOST_OR_STOLEN, false),
+    PROCESSOR_DECLINED_FRAUD_SUSPECTED(2014, "Processor Declined - Fraud Suspected", ErrorMessage.FRAUD, false),
     TRANSACTION_NOT_ALLOWED(2015, "Transaction Not Allowed", false),
     DUPLICATE_TRANSACTION(2016, "Duplicate Transaction", true),
     CARDHOLDER_STOPPED_BILLING(2017, "Cardholder Stopped Billing", false),
@@ -71,14 +74,14 @@ public enum BraintreeAuthorizationDeclineCode implements AuthorizationDeclineCod
     INVALID_SKU_NUMBER(2049, "Invalid SKU Number", false),
     INVALID_CREDIT_PLAN(2050, "Invalid Credit Plan", true),
     CREDIT_CARD_NUMBER_DOES_NOT_MATCH_METHOD_OF_PAYMENT(2051, "Credit Card Number does not match method of payment", false),
-    CARD_REPORTED_AS_LOST_OR_STOLEN(2053, "Card reported as lost or stolen", false),
+    CARD_REPORTED_AS_LOST_OR_STOLEN(2053, "Card reported as lost or stolen", ErrorMessage.LOST_OR_STOLEN, false),
     REVERSAL_AMOUNT_DOES_NOT_MATCH_AUTHORIZATION_AMOUNT(2054, "Reversal amount does not match authorization amount", true),
     INVALID_TRANSACTION_DIVISION_NUMBER(2055, "Invalid Transaction Division Number", false),
     TRANSACTION_AMOUNT_EXCEEDS_THE_TRANSACTION_DIVISION_LIMIT(2056, "Transaction amount exceeds the transaction division limit", false),
     ISSUER_OR_CARDHOLDER_HAS_PUT_A_RESTRICTION_ON_THE_CARD(2057, "Issuer or Cardholder has put a restriction on the card", true),
     MERCHANT_NOT_MASTERCARD_SECURECODE_ENABLED(2058, "Merchant not MasterCard SecureCode enabled", false),
-    ADDRESS_VERIFICATION_FAILED(2059, "Address Verification Failed", false),
-    ADDRESS_VERIFICATION_AND_CARD_SECURITY_CODE_FAILED(2060, "Address Verification and Card Security Code Failed", false),
+    ADDRESS_VERIFICATION_FAILED(2059, "Address Verification Failed", ErrorMessage.ADDRESS_MISMATCH, false),
+    ADDRESS_VERIFICATION_AND_CARD_SECURITY_CODE_FAILED(2060, "Address Verification and Card Security Code Failed", ErrorMessage.ADDRESS_MISMATCH, false),
     INVALID_TRANSACTION_DATA(2061, "Invalid Transaction Data", false),
     INVALID_TAX_AMOUNT(2062, "Invalid Tax Amount", true),
     PAYPAL_BUSINESS_ACCOUNT_PREFERENCE_RESULTED_IN_THE_TRANSACTION_FAILING(2063, "PayPal Business Account preference resulted in the transaction failing", false),
@@ -120,11 +123,17 @@ public enum BraintreeAuthorizationDeclineCode implements AuthorizationDeclineCod
 
     private final int code;
     private final String message;
+    private final ErrorMessage errorMessage;
     private final boolean retryable;
 
     BraintreeAuthorizationDeclineCode(final int code, final String message, final boolean retryable) {
+        this(code, message, ErrorMessage.GENERAL_DECLINE, retryable);
+    }
+
+    BraintreeAuthorizationDeclineCode(final int code, final String message, final ErrorMessage errorMessage, final boolean retryable) {
         this.code = code;
         this.message = message;
+        this.errorMessage = errorMessage;
         this.retryable = retryable;
     }
 
@@ -141,6 +150,11 @@ public enum BraintreeAuthorizationDeclineCode implements AuthorizationDeclineCod
     @Override
     public String getMessage() {
         return message;
+    }
+
+    @Override
+    public ErrorMessage getErrorMessage() {
+        return errorMessage;
     }
 
     @Override

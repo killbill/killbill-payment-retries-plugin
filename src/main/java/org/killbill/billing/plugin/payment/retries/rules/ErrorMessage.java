@@ -17,15 +17,15 @@
 
 package org.killbill.billing.plugin.payment.retries.rules;
 
-public interface AuthorizationDeclineCode {
+public enum ErrorMessage {
 
-    public String getProcessor();
-
-    public int getCode();
-
-    public String getMessage();
-
-    public ErrorMessage getErrorMessage();
-
-    public boolean isRetryable();
+    ADDRESS_MISMATCH,
+    CARD_NUMBER_MISMATCH,
+    CVV_MISMATCH,
+    EXPIRATION_DATE_MISMATCH,
+    EXPIRED_CARD,
+    FRAUD,
+    GENERAL_DECLINE,
+    INSUFFICIENT_FUNDS,
+    LOST_OR_STOLEN;
 }

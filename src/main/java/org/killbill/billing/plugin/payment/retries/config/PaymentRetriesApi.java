@@ -17,6 +17,7 @@
 
 package org.killbill.billing.plugin.payment.retries.config;
 
+import java.util.Map;
 import java.util.UUID;
 
 import javax.annotation.Nullable;
@@ -49,8 +50,15 @@ public class PaymentRetriesApi {
 
     public AuthorizationDeclineCode getAuthorizationDeclineCode(final String paymentExternalKey, final UUID tenantId) {
         final Payment payment = osgiKillbillAPIWrapper.getPayment(paymentExternalKey, tenantId);
+        if (payment == null) {
+            return null;
+        }
         final PaymentTransaction failedAuthorization = osgiKillbillAPIWrapper.getLastAuthorizationIfFailed(payment);
         return getAuthorizationDeclineCode(failedAuthorization, payment.getPaymentMethodId(), tenantId);
+    }
+
+    public Map<String, Map<Integer, AuthorizationDeclineCode>> getPerPluginDeclineCodes() {
+        return rulesComputer.getPerPluginDeclineCodes();
     }
 
     private AuthorizationDeclineCode getAuthorizationDeclineCode(@Nullable final PaymentTransaction failedAuthorization, final UUID paymentMethodId, final UUID tenantId) {
