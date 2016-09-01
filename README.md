@@ -48,7 +48,7 @@ curl -v \
      "http://127.0.0.1:8080/plugins/payment-retries-plugin/configuration?retryable=true"
 ```
 
-Filter for insufficient funds errors only (see ErrorMessage.java):
+Filter for insufficient funds errors only (see [ErrorMessage](https://github.com/killbill/killbill-payment-retries-plugin/blob/master/src/main/java/org/killbill/billing/plugin/payment/retries/rules/ErrorMessage.java)):
 
 ```
 curl -v \
