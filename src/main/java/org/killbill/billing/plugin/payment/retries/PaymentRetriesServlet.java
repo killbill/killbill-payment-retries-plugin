@@ -78,7 +78,7 @@ public class PaymentRetriesServlet extends HttpServlet {
                 resp.setContentType(APPLICATION_JSON);
             }
         } else if (CONFIGURATION_PATTERN.matcher(pathInfo).matches()) {
-            final boolean retryableOnly = Boolean.valueOf(req.getParameter(RETRYABLE));
+            final boolean retryable = Boolean.valueOf(req.getParameter(RETRYABLE));
             final String errorMessage = req.getParameter(ERROR_MESSAGE);
 
             final Map<String, Map<Integer, AuthorizationDeclineCode>> perPluginDeclineCodes = paymentRetriesApi.getPerPluginDeclineCodes();
@@ -89,13 +89,8 @@ public class PaymentRetriesServlet extends HttpServlet {
                                                                                      new Predicate<AuthorizationDeclineCode>() {
                                                                                          @Override
                                                                                          public boolean apply(final AuthorizationDeclineCode authorizationDeclineCode) {
-                                                                                             if (retryableOnly && errorMessage == null) {
-                                                                                                 return authorizationDeclineCode.isRetryable();
-                                                                                             } else if (retryableOnly) {
-                                                                                                 return authorizationDeclineCode.isRetryable() && authorizationDeclineCode.getErrorMessage().name().equalsIgnoreCase(errorMessage);
-                                                                                             } else {
-                                                                                                 return errorMessage == null || authorizationDeclineCode.getErrorMessage().name().equalsIgnoreCase(errorMessage);
-                                                                                             }
+                                                                                             return retryable == authorizationDeclineCode.isRetryable() &&
+                                                                                                    (errorMessage == null || authorizationDeclineCode.getErrorMessage().name().equalsIgnoreCase(errorMessage));
                                                                                          }
                                                                                      }));
             }
