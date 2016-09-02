@@ -33,8 +33,10 @@ public class RulesComputer {
     private final Map<String, Map<Integer, AuthorizationDeclineCode>> perPluginDeclineCodes = new TreeMap<String, Map<Integer, AuthorizationDeclineCode>>();
 
     public RulesComputer() {
+        populateReverseLookup("killbill-adyen", AdyenAuthorizationDeclineCode.values());
         populateReverseLookup("killbill-braintree_blue", BraintreeAuthorizationDeclineCode.values());
         populateReverseLookup("killbill-cybersource", ChasePaymentechAuthorizationDeclineCode.values());
+        populateReverseLookup("killbill-orbital", ChasePaymentechAuthorizationDeclineCode.values());
     }
 
     public AuthorizationDeclineCode lookupAuthorizationDeclineCode(final PaymentMethod paymentMethod, final PaymentTransactionInfoPlugin paymentTransactionInfoPlugin) {
