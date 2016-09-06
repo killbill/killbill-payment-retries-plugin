@@ -25,7 +25,7 @@ import javax.servlet.http.HttpServlet;
 
 import org.killbill.billing.control.plugin.api.PaymentControlPluginApi;
 import org.killbill.billing.osgi.api.OSGIPluginProperties;
-import org.killbill.billing.osgi.libs.killbill.KillbillActivatorBase;
+import org.killbill.killbill.osgi.libs.killbill.KillbillActivatorBase;
 import org.killbill.billing.plugin.api.notification.PluginConfigurationEventHandler;
 import org.killbill.billing.plugin.payment.retries.config.PaymentRetriesApi;
 import org.killbill.billing.plugin.payment.retries.config.PaymentRetriesConfiguration;
@@ -65,7 +65,7 @@ public class PaymentRetriesActivator extends KillbillActivatorBase {
 
     private void registerEventHandler() {
         final PluginConfigurationEventHandler eventHandler = new PluginConfigurationEventHandler(paymentRetriesConfigurationHandler);
-        dispatcher.registerEventHandlers(eventHandler);
+        dispatcher.registerEventHandler(eventHandler);
     }
 
     private void registerServlet(final BundleContext context, final HttpServlet servlet) {

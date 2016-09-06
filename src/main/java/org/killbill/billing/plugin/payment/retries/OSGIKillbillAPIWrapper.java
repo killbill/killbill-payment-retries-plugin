@@ -22,8 +22,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
-import org.killbill.billing.osgi.libs.killbill.OSGIKillbillAPI;
-import org.killbill.billing.osgi.libs.killbill.OSGIServiceNotAvailable;
+import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillAPI;
+import org.killbill.killbill.osgi.libs.killbill.OSGIServiceNotAvailable;
 import org.killbill.billing.payment.api.Payment;
 import org.killbill.billing.payment.api.PaymentApi;
 import org.killbill.billing.payment.api.PaymentApiException;
@@ -60,7 +60,6 @@ public class OSGIKillbillAPIWrapper {
             final PaymentApi paymentApi = killbillAPI.getPaymentApi();
             return paymentApi.getPaymentByExternalKey(paymentExternalKey,
                                                       true,
-                                                      false,
                                                       ImmutableList.<PluginProperty>of(),
                                                       tenantContext);
         } catch (final OSGIServiceNotAvailable e) {
@@ -98,7 +97,6 @@ public class OSGIKillbillAPIWrapper {
             final PaymentApi paymentApi = killbillAPI.getPaymentApi();
             final List<Payment> payments = paymentApi.getAccountPayments(accountId,
                                                                          true,
-                                                                         false,
                                                                          ImmutableList.<PluginProperty>of(),
                                                                          tenantContext);
             return getLastAuthorizationIfFailed(payments, paymentMethodId);

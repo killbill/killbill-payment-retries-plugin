@@ -22,7 +22,7 @@ import java.util.UUID;
 
 import javax.annotation.Nullable;
 
-import org.killbill.billing.osgi.libs.killbill.OSGIKillbillAPI;
+import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillAPI;
 import org.killbill.billing.payment.api.Payment;
 import org.killbill.billing.payment.api.PaymentMethod;
 import org.killbill.billing.payment.api.PaymentTransaction;

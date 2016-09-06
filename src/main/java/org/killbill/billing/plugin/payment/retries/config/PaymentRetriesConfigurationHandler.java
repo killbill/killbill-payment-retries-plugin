@@ -19,8 +19,8 @@ package org.killbill.billing.plugin.payment.retries.config;
 
 import java.util.Properties;
 
-import org.killbill.billing.osgi.libs.killbill.OSGIKillbillAPI;
-import org.killbill.billing.osgi.libs.killbill.OSGIKillbillLogService;
+import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillAPI;
+import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillLogService;
 import org.killbill.billing.plugin.api.notification.PluginTenantConfigurableConfigurationHandler;
 
 public class PaymentRetriesConfigurationHandler extends PluginTenantConfigurableConfigurationHandler<PaymentRetriesConfiguration> {
