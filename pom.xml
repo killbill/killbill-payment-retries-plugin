@@ -26,7 +26,7 @@
     <groupId>org.kill-bill.billing.plugin.java</groupId>
     <artifactId>payment-retries-plugin</artifactId>
     <name>Kill Bill OSGI Payment Retries bundle</name>
-    <version>0.1.1-SNAPSHOT</version>
+    <version>0.2.0</version>
     <packaging>bundle</packaging>
     <description>Kill Bill Payment Retries plugin</description>
     <url>http://github.com/killbill/killbill-payment-retries-plugin</url>
