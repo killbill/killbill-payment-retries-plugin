@@ -352,6 +352,23 @@
                 <artifactId>maven-shade-plugin</artifactId>
                 <executions>
                     <execution>
+                        <id>assemble-killbill-osgi-bundles-payment-retries-java-classes</id>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <phase>package</phase>
+                        <configuration>
+                            <createSourcesJar>false</createSourcesJar>
+                            <shadedArtifactAttached>true</shadedArtifactAttached>
+                            <shadedClassifierName>classes</shadedClassifierName>
+                            <artifactSet>
+                                <includes>
+                                    <include>${project.groupId}:${project.artifactId}</include>
+                                </includes>
+                            </artifactSet>
+                        </configuration>
+                    </execution>
+                    <execution>
                         <id>assemble-killbill-osgi-bundles-payment-retries-java-plugin</id>
                         <goals>
                             <goal>shade</goal>
