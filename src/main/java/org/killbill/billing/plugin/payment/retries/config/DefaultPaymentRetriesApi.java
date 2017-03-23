@@ -27,27 +27,30 @@ import org.killbill.billing.payment.api.Payment;
 import org.killbill.billing.payment.api.PaymentMethod;
 import org.killbill.billing.payment.api.PaymentTransaction;
 import org.killbill.billing.plugin.payment.retries.OSGIKillbillAPIWrapper;
-import org.killbill.billing.plugin.payment.retries.rules.AuthorizationDeclineCode;
+import org.killbill.billing.plugin.payment.retries.api.AuthorizationDeclineCode;
+import org.killbill.billing.plugin.payment.retries.api.PaymentRetriesApi;
 import org.killbill.billing.plugin.payment.retries.rules.RulesComputer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class PaymentRetriesApi {
+public class DefaultPaymentRetriesApi implements PaymentRetriesApi {
 
-    private static final Logger logger = LoggerFactory.getLogger(PaymentRetriesApi.class);
+    private static final Logger logger = LoggerFactory.getLogger(DefaultPaymentRetriesApi.class);
 
     private final RulesComputer rulesComputer = new RulesComputer();
     private final OSGIKillbillAPIWrapper osgiKillbillAPIWrapper;
 
-    public PaymentRetriesApi(final OSGIKillbillAPI killbillAPI) {
+    public DefaultPaymentRetriesApi(final OSGIKillbillAPI killbillAPI) {
         this.osgiKillbillAPIWrapper = new OSGIKillbillAPIWrapper(killbillAPI);
     }
 
+    @Override
     public AuthorizationDeclineCode getAuthorizationDeclineCode(final UUID accountId, final UUID paymentMethodId, final UUID tenantId) {
         final PaymentTransaction failedAuthorization = osgiKillbillAPIWrapper.getLastAuthorizationIfFailed(accountId, paymentMethodId, tenantId);
         return getAuthorizationDeclineCode(failedAuthorization, paymentMethodId, tenantId);
     }
 
+    @Override
     public AuthorizationDeclineCode getAuthorizationDeclineCode(final String paymentExternalKey, final UUID tenantId) {
         final Payment payment = osgiKillbillAPIWrapper.getPayment(paymentExternalKey, tenantId);
         if (payment == null) {
@@ -57,6 +60,7 @@ public class PaymentRetriesApi {
         return getAuthorizationDeclineCode(failedAuthorization, payment.getPaymentMethodId(), tenantId);
     }
 
+    @Override
     public Map<String, Map<Integer, AuthorizationDeclineCode>> getPerPluginDeclineCodes() {
         return rulesComputer.getPerPluginDeclineCodes();
     }

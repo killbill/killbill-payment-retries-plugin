@@ -15,7 +15,7 @@
  * under the License.
  */
 
-package org.killbill.billing.plugin.payment.retries.rules;
+package org.killbill.billing.plugin.payment.retries.api;
 
 public enum ErrorMessage {
 

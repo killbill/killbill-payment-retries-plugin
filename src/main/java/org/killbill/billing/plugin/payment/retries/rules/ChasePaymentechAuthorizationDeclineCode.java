@@ -17,6 +17,9 @@
 
 package org.killbill.billing.plugin.payment.retries.rules;
 
+import org.killbill.billing.plugin.payment.retries.api.AuthorizationDeclineCode;
+import org.killbill.billing.plugin.payment.retries.api.ErrorMessage;
+
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 @JsonFormat(shape = JsonFormat.Shape.OBJECT)

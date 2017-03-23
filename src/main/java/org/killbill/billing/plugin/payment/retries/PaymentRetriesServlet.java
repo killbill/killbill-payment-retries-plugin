@@ -27,8 +27,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.killbill.billing.plugin.payment.retries.config.PaymentRetriesApi;
-import org.killbill.billing.plugin.payment.retries.rules.AuthorizationDeclineCode;
+import org.killbill.billing.plugin.payment.retries.api.PaymentRetriesApi;
+import org.killbill.billing.plugin.payment.retries.api.AuthorizationDeclineCode;
 import org.killbill.billing.tenant.api.Tenant;
 
 import com.fasterxml.jackson.databind.ObjectMapper;

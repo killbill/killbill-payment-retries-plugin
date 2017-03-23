@@ -23,6 +23,7 @@ import java.util.TreeMap;
 import org.killbill.billing.payment.api.PaymentMethod;
 import org.killbill.billing.payment.plugin.api.PaymentTransactionInfoPlugin;
 import org.killbill.billing.plugin.api.PluginProperties;
+import org.killbill.billing.plugin.payment.retries.api.AuthorizationDeclineCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

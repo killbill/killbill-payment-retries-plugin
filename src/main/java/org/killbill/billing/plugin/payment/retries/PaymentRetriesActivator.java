@@ -27,7 +27,8 @@ import org.killbill.billing.control.plugin.api.PaymentControlPluginApi;
 import org.killbill.billing.osgi.api.OSGIPluginProperties;
 import org.killbill.billing.osgi.libs.killbill.KillbillActivatorBase;
 import org.killbill.billing.plugin.api.notification.PluginConfigurationEventHandler;
-import org.killbill.billing.plugin.payment.retries.config.PaymentRetriesApi;
+import org.killbill.billing.plugin.payment.retries.api.PaymentRetriesApi;
+import org.killbill.billing.plugin.payment.retries.config.DefaultPaymentRetriesApi;
 import org.killbill.billing.plugin.payment.retries.config.PaymentRetriesConfiguration;
 import org.killbill.billing.plugin.payment.retries.config.PaymentRetriesConfigurationHandler;
 import org.osgi.framework.BundleContext;
@@ -47,7 +48,8 @@ public class PaymentRetriesActivator extends KillbillActivatorBase {
         final PaymentRetriesConfiguration globalConfigurable = paymentRetriesConfigurationHandler.createConfigurable(configProperties.getProperties());
         paymentRetriesConfigurationHandler.setDefaultConfigurable(globalConfigurable);
 
-        final PaymentRetriesApi paymentRetriesApi = new PaymentRetriesApi(killbillAPI);
+        final PaymentRetriesApi paymentRetriesApi = new DefaultPaymentRetriesApi(killbillAPI);
+        registrar.registerService(context, PaymentRetriesApi.class, paymentRetriesApi, new Hashtable());
 
         final PaymentControlPluginApi paymentControlPluginApi = new PaymentRetriesPaymentControlPluginApi(paymentRetriesConfigurationHandler,
                                                                                                           paymentRetriesApi,

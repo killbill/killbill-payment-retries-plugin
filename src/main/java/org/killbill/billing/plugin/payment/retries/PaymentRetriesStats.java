@@ -21,7 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.killbill.billing.plugin.payment.retries.rules.AuthorizationDeclineCode;
+import org.killbill.billing.plugin.payment.retries.api.AuthorizationDeclineCode;
 
 public class PaymentRetriesStats {
 
