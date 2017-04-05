@@ -149,6 +149,10 @@ public class OSGIKillbillAPIWrapper {
                                                                                                                            paymentTransaction.getTransactionStatus() == TransactionStatus.PAYMENT_FAILURE;
                                                                                                                 }
                                                                                                             });
-        return Iterables.getLast(failedAuthorizations);
+        if (failedAuthorizations.isEmpty()) {
+            return null;
+        } else {
+            return Iterables.getLast(failedAuthorizations);
+        }
     }
 }
