@@ -27,5 +27,5 @@ public enum ErrorMessage {
     FRAUD,
     GENERAL_DECLINE,
     INSUFFICIENT_FUNDS,
-    LOST_OR_STOLEN;
+    LOST_OR_STOLEN
 }
