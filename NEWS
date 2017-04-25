@@ -1,3 +1,6 @@
+0.2.2
+    Update to killbill-oss-parent 0.140.25
+
 0.2.1
     Introduce PaymentRetriesApi service
     Update killbill-oss-parent to 0.140.17
