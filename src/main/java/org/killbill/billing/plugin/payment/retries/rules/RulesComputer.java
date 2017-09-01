@@ -87,7 +87,7 @@ public class RulesComputer {
                                                        errorMessage,
                                                        errorMessage.isRetryable());
         } else {
-            logger.info("Unable to fuzzy match an error category based on the error message=''{}.", gatewayError);
+            logger.info("Unable to fuzzy match an error category based on the error message='{}'.", gatewayError);
             return null;
         }
     }
