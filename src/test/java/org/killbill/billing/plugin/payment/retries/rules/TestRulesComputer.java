@@ -22,6 +22,8 @@ import java.util.UUID;
 import org.killbill.billing.payment.api.PaymentMethod;
 import org.killbill.billing.payment.plugin.api.PaymentTransactionInfoPlugin;
 import org.killbill.billing.plugin.TestUtils;
+import org.killbill.billing.plugin.payment.retries.api.AuthorizationDeclineCode;
+import org.killbill.billing.plugin.payment.retries.api.ErrorMessage;
 import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -33,10 +35,47 @@ public class TestRulesComputer {
         final RulesComputer rulesComputer = new RulesComputer();
         final UUID accountId = UUID.randomUUID();
         final PaymentMethod otherPm = TestUtils.buildPaymentMethod(accountId, UUID.randomUUID(), UUID.randomUUID().toString());
-        final PaymentMethod csPm = TestUtils.buildPaymentMethod(accountId, UUID.randomUUID(), "killbill-cybersource");
 
         final PaymentTransactionInfoPlugin paymentTransactionInfoPlugin = Mockito.mock(PaymentTransactionInfoPlugin.class);
         Mockito.when(paymentTransactionInfoPlugin.getSecondPaymentReferenceId()).thenReturn("250");
         Assert.assertNull(rulesComputer.lookupAuthorizationDeclineCode(otherPm, paymentTransactionInfoPlugin));
+    }
+
+    @Test(groups = "fast")
+    public void testLookupAuthorizationDeclineCodeWithIntegerErrorCode() throws Exception {
+        final RulesComputer rulesComputer = new RulesComputer();
+        final PaymentMethod pm = TestUtils.buildPaymentMethod(UUID.randomUUID(), UUID.randomUUID(), "killbill-adyen");
+
+        final PaymentTransactionInfoPlugin paymentTransactionInfoPlugin = Mockito.mock(PaymentTransactionInfoPlugin.class);
+        Mockito.when(paymentTransactionInfoPlugin.getGatewayErrorCode()).thenReturn("62");
+        AuthorizationDeclineCode code = rulesComputer.lookupAuthorizationDeclineCode(pm, paymentTransactionInfoPlugin);
+        Assert.assertEquals(code.getErrorMessage(), ErrorMessage.GENERAL_DECLINE);
+        Assert.assertEquals(code.getMessage(), "Restricted card");
+        Assert.assertEquals(code.getCode(), 62);
+        Assert.assertEquals(code.isRetryable(), true);
+    }
+
+    @Test(groups = "fast")
+    public void testLookupAuthorizationDeclineCodeWithFuzzyMatch() throws Exception {
+        final RulesComputer rulesComputer = new RulesComputer();
+        final PaymentMethod pm = TestUtils.buildPaymentMethod(UUID.randomUUID(), UUID.randomUUID(), "killbill-adyen");
+
+        final PaymentTransactionInfoPlugin paymentTransactionInfoPlugin = Mockito.mock(PaymentTransactionInfoPlugin.class);
+        Mockito.when(paymentTransactionInfoPlugin.getGatewayError()).thenReturn("CVC Declined");
+        AuthorizationDeclineCode code = rulesComputer.lookupAuthorizationDeclineCode(pm, paymentTransactionInfoPlugin);
+        Assert.assertEquals(code.getErrorMessage(), ErrorMessage.CVV_MISMATCH);
+        Assert.assertEquals(code.getMessage(), "CVC Declined");
+        Assert.assertEquals(code.getCode(), 0);
+        Assert.assertEquals(code.isRetryable(), false);
+    }
+
+    @Test(groups = "fast")
+    public void testLookupAuthorizationDeclineCodeFuzzyMatchFailed() throws Exception {
+        final RulesComputer rulesComputer = new RulesComputer();
+        final PaymentMethod pm = TestUtils.buildPaymentMethod(UUID.randomUUID(), UUID.randomUUID(), "killbill-adyen");
+
+        final PaymentTransactionInfoPlugin paymentTransactionInfoPlugin = Mockito.mock(PaymentTransactionInfoPlugin.class);
+        Mockito.when(paymentTransactionInfoPlugin.getGatewayError()).thenReturn("Card blocked.");
+        Assert.assertNull(rulesComputer.lookupAuthorizationDeclineCode(pm, paymentTransactionInfoPlugin));
     }
 }

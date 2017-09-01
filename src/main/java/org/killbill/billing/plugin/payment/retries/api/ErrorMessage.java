@@ -17,15 +17,45 @@
 
 package org.killbill.billing.plugin.payment.retries.api;
 
-public enum ErrorMessage {
+import java.util.Arrays;
+import java.util.function.Predicate;
 
-    ADDRESS_MISMATCH,
-    CARD_NUMBER_MISMATCH,
-    CVV_MISMATCH,
-    EXPIRATION_DATE_MISMATCH,
-    EXPIRED_CARD,
-    FRAUD,
-    GENERAL_DECLINE,
-    INSUFFICIENT_FUNDS,
-    LOST_OR_STOLEN
+import com.google.common.base.Strings;
+
+public enum ErrorMessage implements Predicate<String> {
+
+    ADDRESS_MISMATCH(false, "address"),
+    CARD_NUMBER_MISMATCH(false, "invalid card number"),
+    CVV_MISMATCH(false, "cvc"),
+    EXPIRATION_DATE_MISMATCH(false),
+    EXPIRED_CARD(false, "expired"),
+    FRAUD(false, "fraud"),
+    GENERAL_DECLINE(true),
+    INSUFFICIENT_FUNDS(true, "not enough balance", "withdrawal amount exceeded"),
+    LOST_OR_STOLEN(false);
+
+    private final String[] keywords;
+    private final boolean retryable;
+
+    ErrorMessage(final boolean retryable, final String... keywords) {
+        this.keywords = keywords;
+        this.retryable = retryable;
+    }
+
+    public boolean isRetryable() {
+        return this.retryable;
+    }
+
+    @Override
+    public boolean test(final String message) {
+        if(Strings.isNullOrEmpty(message)) {
+            return false;
+        }
+        return Arrays.stream(keywords).parallel().anyMatch(message.toLowerCase()::contains);
+    }
+
+    @Override
+    public String toString() {
+        return this.name();
+    }
 }

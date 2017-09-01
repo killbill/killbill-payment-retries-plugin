@@ -77,7 +77,7 @@ public enum AdyenAuthorizationDeclineCode implements AuthorizationDeclineCode {
 
     @Override
     public String getProcessor() {
-        return "Adyen";
+        return RulesComputer.AYDEN_PROCESSOR;
     }
 
     @Override
