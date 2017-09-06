@@ -27,7 +27,7 @@ public enum ErrorMessage implements Predicate<String> {
     ADDRESS_MISMATCH(false, "address"),
     CARD_NUMBER_MISMATCH(false, "invalid card number"),
     CVV_MISMATCH(false, "cvc"),
-    EXPIRATION_DATE_MISMATCH(false),
+    EXPIRATION_DATE_MISMATCH(false, "expiration date"),
     EXPIRED_CARD(false, "expired"),
     FRAUD(false, "fraud"),
     GENERAL_DECLINE(true),
