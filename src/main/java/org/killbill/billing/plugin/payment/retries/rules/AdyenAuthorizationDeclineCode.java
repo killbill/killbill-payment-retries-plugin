@@ -57,7 +57,8 @@ public enum AdyenAuthorizationDeclineCode implements AuthorizationDeclineCode {
     UNABLE_TO_ROUTE_TRANSACTION(92, "Destination cannot be found for routing", true),
     // UNABLE_TO_ROUTE_TRANSACTION(92,"Unable to route transaction",true),
     VIOLATION_OF_LAW(93, "Transaction cannot be completed; violation of law", true),
-    MALFUNCTION(96, "System malfunction", true);
+    MALFUNCTION(96, "System malfunction", true),
+    DENY(100, "Deny", true);
 
     private final int code;
     private final String message;
@@ -77,7 +78,7 @@ public enum AdyenAuthorizationDeclineCode implements AuthorizationDeclineCode {
 
     @Override
     public String getProcessor() {
-        return "Adyen";
+        return RulesComputer.AYDEN_PROCESSOR;
     }
 
     @Override

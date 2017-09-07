@@ -225,7 +225,7 @@ public enum ChasePaymentechAuthorizationDeclineCode implements AuthorizationDecl
 
     @Override
     public String getProcessor() {
-        return "Paymentech";
+        return RulesComputer.PAYMENTECH;
     }
 
     @Override

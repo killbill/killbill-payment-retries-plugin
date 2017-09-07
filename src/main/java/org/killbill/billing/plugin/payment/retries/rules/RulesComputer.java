@@ -17,6 +17,7 @@
 
 package org.killbill.billing.plugin.payment.retries.rules;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -24,20 +25,38 @@ import org.killbill.billing.payment.api.PaymentMethod;
 import org.killbill.billing.payment.plugin.api.PaymentTransactionInfoPlugin;
 import org.killbill.billing.plugin.api.PluginProperties;
 import org.killbill.billing.plugin.payment.retries.api.AuthorizationDeclineCode;
+import org.killbill.billing.plugin.payment.retries.api.ErrorMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.ImmutableMap;
+
 public class RulesComputer {
 
-    private static final Logger logger = LoggerFactory.getLogger(RulesComputer.class);
+    private final static String ADYEN_PLUGIN = "killbill-adyen";
+    private final static String BRAINTREE_BLUE_PLUGIN = "killbill-braintree_blue";
+    private final static String ORBITAL = "killbill-orbital";
+    private final static String CYBERSOURCE = "killbill-cybersource";
 
-    private final Map<String, Map<Integer, AuthorizationDeclineCode>> perPluginDeclineCodes = new TreeMap<String, Map<Integer, AuthorizationDeclineCode>>();
+    final static String PAYMENTECH = "Paymentech";
+    final static String BRAINTREE = "Braintree";
+    final static String AYDEN_PROCESSOR = "Adyen";
+
+    private final static int DEFAULT_ERROR_CODE = 0;
+    private final static Logger logger = LoggerFactory.getLogger(RulesComputer.class);
+
+    public final static Map<String, String> PROCESSOR_PER_GATEWAY = ImmutableMap.of(ADYEN_PLUGIN, AYDEN_PROCESSOR,
+                                                                                    BRAINTREE_BLUE_PLUGIN, BRAINTREE,
+                                                                                    ORBITAL, PAYMENTECH,
+                                                                                    CYBERSOURCE, PAYMENTECH);
+
+    private final Map<String, Map<Integer, AuthorizationDeclineCode>> perPluginDeclineCodes = new TreeMap<>();
 
     public RulesComputer() {
-        populateReverseLookup("killbill-adyen", AdyenAuthorizationDeclineCode.values());
-        populateReverseLookup("killbill-braintree_blue", BraintreeAuthorizationDeclineCode.values());
-        populateReverseLookup("killbill-cybersource", ChasePaymentechAuthorizationDeclineCode.values());
-        populateReverseLookup("killbill-orbital", ChasePaymentechAuthorizationDeclineCode.values());
+        populateReverseLookup(ADYEN_PLUGIN, AdyenAuthorizationDeclineCode.values());
+        populateReverseLookup(BRAINTREE_BLUE_PLUGIN, BraintreeAuthorizationDeclineCode.values());
+        populateReverseLookup(CYBERSOURCE, ChasePaymentechAuthorizationDeclineCode.values());
+        populateReverseLookup(ORBITAL, ChasePaymentechAuthorizationDeclineCode.values());
     }
 
     public AuthorizationDeclineCode lookupAuthorizationDeclineCode(final PaymentMethod paymentMethod, final PaymentTransactionInfoPlugin paymentTransactionInfoPlugin) {
@@ -48,20 +67,36 @@ public class RulesComputer {
         }
 
         final String processorResponse = PluginProperties.getValue("processorResponse", paymentTransactionInfoPlugin.getGatewayErrorCode(), paymentTransactionInfoPlugin.getProperties());
-        if (processorResponse == null) {
-            logger.info("No processorResponseCode available from paymentTransactionInfoPlugin='{}'", paymentTransactionInfoPlugin);
-            return null;
-        }
-
         final Integer processorResponseCode;
         try {
             processorResponseCode = Integer.valueOf(processorResponse);
+            return declineCodes.get(processorResponseCode);
         } catch (final NumberFormatException e) {
-            logger.info("Unable to extract processorResponseCode from processorResponse='{}'", processorResponse);
+            logger.info("Unable to extract an integer processorResponseCode from processorResponse='{}'. " +
+                        "Trying fuzzy match based on error message.", processorResponse);
+            return getFuzzyMatchedAuthDeclineCode(paymentTransactionInfoPlugin.getGatewayError(), paymentMethod.getPluginName());
+        }
+    }
+
+    private AuthorizationDeclineCode getFuzzyMatchedAuthDeclineCode(final String gatewayError, final String paymentMethodPlugin) {
+        ErrorMessage errorMessage = getFuzzyMatchedErrorMessage(gatewayError);
+        if(errorMessage != null) {
+            return new DefaultAuthorizationDeclineCode(PROCESSOR_PER_GATEWAY.get(paymentMethodPlugin),
+                                                       DEFAULT_ERROR_CODE,
+                                                       gatewayError,
+                                                       errorMessage,
+                                                       errorMessage.isRetryable());
+        } else {
+            logger.info("Unable to fuzzy match an error category based on the error message='{}'.", gatewayError);
             return null;
         }
+    }
 
-        return declineCodes.get(processorResponseCode);
+    private ErrorMessage getFuzzyMatchedErrorMessage(final String gatewayError) {
+        return Arrays.stream(ErrorMessage.values())
+                     .filter(error -> error.test(gatewayError))
+                     .findFirst()
+                     .orElse(null);
     }
 
     public Map<String, Map<Integer, AuthorizationDeclineCode>> getPerPluginDeclineCodes() {
