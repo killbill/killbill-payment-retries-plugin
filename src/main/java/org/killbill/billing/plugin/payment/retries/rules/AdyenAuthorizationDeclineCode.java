@@ -34,7 +34,7 @@ public enum AdyenAuthorizationDeclineCode implements AuthorizationDeclineCode {
     PICKUP_CARD(7, "Pickup card, special condition", false),
     INVALID_TRANSACTION(12, "Invalid transaction", true),
     INVALID_AMOUNT(13, "Invalid amount", true),
-    INVALID_CARD_NUMBER(14, "Invalid card number", ErrorMessage.CARD_NUMBER_MISMATCH, true),
+    INVALID_CARD_NUMBER(14, "Invalid card number", ErrorMessage.CARD_NUMBER_MISMATCH, false),
     INVALID_ISSUER(15, "Invalid issuer", true),
     FORMAT_ERROR(30, "Format error", true),
     LOST_CARD(41, "Lost card", ErrorMessage.LOST_OR_STOLEN, false),
