@@ -1,3 +1,6 @@
+0.2.4
+    Don't retry invalid card numbers for Adyen
+
 0.2.3
     ErrorMessage match based on gatewayErrorMessage when Integer error code is unavailable
 
